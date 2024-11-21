@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,6 +40,41 @@
 
     .make-button:hover {
       background-color: #5a6268;
+    }
+
+    .today-players {
+      margin: 20px auto;
+      width: 80%;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      text-align: left;
+    }
+
+    .today-players h3 {
+      margin: 0;
+      margin-bottom: 10px;
+    }
+
+    .player-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      /* 가로 정렬 */
+      flex-wrap: wrap;
+      /* 요소가 넘칠 경우 줄바꿈 */
+      gap: 10px;
+      /* 요소 간 간격 */
+    }
+
+    .player-list li {
+      font-size: 16px;
+      padding: 5px 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
 
     .matches-list {
@@ -88,9 +124,9 @@
     .save-button:hover {
       background-color: #218838;
     }
-    
   </style>
 </head>
+
 <body>
   <!-- Header -->
   <div class="header">
@@ -104,6 +140,11 @@
     <button class="make-button" id="makeMatchesButton">Make Matches</button>
   </div>
 
+  <!-- Today Players -->
+  <div class="today-players">
+    <h3>Today Players:</h3>
+    <ul class="player-list" id="todayPlayersList"></ul>
+  </div>
   <!-- Matches List -->
   <div class="matches-list" id="matchesList">
     <p>No matches available. Create some matches!</p>
@@ -117,6 +158,7 @@
 
   <script>
     const matchesList = document.getElementById('matchesList');
+    const todayPlayersList = document.getElementById('todayPlayersList');
     const makePlayersButton = document.getElementById('makePlayersButton');
     const makeDayButton = document.getElementById('makeDayButton');
     const makeMatchesButton = document.getElementById('makeMatchesButton');
@@ -146,55 +188,117 @@
       );
     });
 
-    // Sample data for matches
-    let matches = [];
-    let backupMatches = [];
+    // Load Today Players
+    async function loadTodayPlayers() {
 
-    // Add match function
-    function addMatch(match) {
-      matches.push(match);
-      updateMatchesList();
-    }
-
-    // Update Matches List Display
-    function updateMatchesList() {
-      matchesList.innerHTML = matches.length
-        ? matches.map((match, index) => `<p>Match ${index + 1}: ${match}</p>`).join('')
-        : '<p>No matches available. Create some matches!</p>';
-    }
-
-    // Rollback to previous state
-    rollbackButton.addEventListener('click', () => {
-      matches = [...backupMatches];
-      updateMatchesList();
-    });
-
-    // Save matches
-    saveButton.addEventListener('click', async (e) => {
-      e.preventDefault(); 
-
-      // Send POST request to /login
       try {
-        const response = await fetch('/logout', {
-          method: 'POST',
+        const response = await fetch('/getMakeDay', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json'
-          },
-          //body: JSON.stringify({ })
+          }
         });
 
         if (response.ok) {
-        const data = await response.json()
-          alert(`Logout successful: ${data.success}`);
-          window.location.href = data.redirect;
-        } else {
-          const error = await response.json();
-          alert(`Logout failed: ${error.success}`);
+          const data = await response.json();
+          const dayPlayerList = data.dayPlayerList;
+          //alert(`isArray: ${Array.isArray(dayPlayerList)} / length: ${dayPlayerList.length}`)
+          todayPlayersList.innerHTML = ''; // 초기화
+          if (Array.isArray(dayPlayerList) && dayPlayerList.length > 0) {
+            dayPlayerList.forEach(player => {
+              const li = document.createElement('li');
+              li.textContent = player;
+              todayPlayersList.appendChild(li);
+            });
+          } else {
+            todayPlayersList.innerHTML = '<li>No players available for today.</li>';
+          }
         }
       } catch (err) {
         alert('An error occurred: ' + err.message);
       }
+
+    }
+    async function loadMatches() {
+      try {
+        const response = await fetch('/getMatches', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        const todayMatches = data.todayMatches;
+
+        const matches = Array.isArray(todayMatches)
+          ? todayMatches
+          : Array.isArray(todayMatches.matches)
+            ? todayMatches.matches
+            : [];
+
+        matchesList.innerHTML = ''; // 초기화
+
+        if (matches.length > 0) {
+          matches.forEach((match, index) => {
+            const matchDiv = document.createElement('div');
+            matchDiv.textContent = `Match ${index + 1}: W-${match.winningPlayers} L-${match.losingPlayers}`;
+            matchDiv.style.marginBottom = '5px';
+            matchesList.appendChild(matchDiv);
+          });
+        } else {
+          matchesList.innerHTML = '<p>No matches available. Create some matches!</p>';
+        }
+      } catch (error) {
+        console.error('Error loading matches:', error);
+        matchesList.innerHTML = '<p>Error loading matches.</p>';
+      }
+    }
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTodayPlayers();
+      loadMatches();
     });
+
+
+    // Save Matches Event
+    saveButton.addEventListener('click', async () => {
+      try {
+        // POST 요청
+        const response = await fetch('/saveMatches', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          alert('Matches saved successfully!');
+        } else {
+          const errorMessage = await response.text();
+          alert('Error saving matches: ' + errorMessage);
+        }
+      } catch (error) {
+        console.error('Error during saveMatches:', error);
+        alert('An error occurred while saving matches.');
+      }
+    });
+
+  // Rollback 버튼 클릭 이벤트
+  rollbackButton.addEventListener('click', () => {
+    const matches = matchesList.querySelectorAll('div'); // 매치 목록
+    if (matches.length > 0) {
+      const confirmDelete = confirm("마지막 경기를 삭제하시겠습니까?");
+      if (confirmDelete) {
+        const lastMatch = matches[matches.length - 1]; // 가장 마지막 매치
+        matchesList.removeChild(lastMatch); // 마지막 매치 제거
+      }
+    } else {
+      alert('No matches to rollback.');
+    }
+  });
   </script>
 </body>
+
 </html>

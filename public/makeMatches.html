@@ -1,150 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Make Matches</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    .team-box {
-      margin-bottom: 20px;
-    }
-    .team-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .player-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .player-button {
-      padding: 10px 15px;
-      border: 1px solid #ccc;
-      background-color: #f0f0f0;
-      cursor: pointer;
-    }
-    .player-button.selected {
-      background-color: #4caf50;
-      color: white;
-      font-weight: bold;
-    }
-    .buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .save-button {
-      background-color: #4caf50;
-      color: white;
-      border: none;
-    }
-    .cancel-button {
-      background-color: #f44336;
-      color: white;
-      border: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Matches</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .team-box {
+            margin-bottom: 20px;
+        }
+
+        .team-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* 기본 버튼 스타일 */
+        .player-button {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .player-button.selected {
+            background-color: #4caf50;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* 선택된 버튼 (진 팀) 스타일 */
+        .player-button.selected-losing {
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .save-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+        }
+
+        .cancel-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="team-box">
-    <div class="team-title">이긴 팀</div>
-    <div id="winning-team" class="player-list"></div>
-  </div>
-  <div class="team-box">
-    <div class="team-title">진 팀</div>
-    <div id="losing-team" class="player-list"></div>
-  </div>
-  <div class="buttons">
-    <button class="save-button" id="save-button">저장</button>
-    <button class="cancel-button" id="cancel-button">취소</button>
-  </div>
+    <div class="team-box">
+        <div class="team-title">이긴 팀</div>
+        <div id="winning-team" class="player-list"></div>
+    </div>
+    <div class="team-box">
+        <div class="team-title">진 팀</div>
+        <div id="losing-team" class="player-list"></div>
+    </div>
+    <div class="buttons">
+        <button class="save-button" id="save-button">저장</button>
+        <button class="cancel-button" id="cancel-button">취소</button>
+    </div>
 
-  <script>
-    // GET 요청으로 선수 명단 가져오기
-    async function loadPlayers() {
-      try {
-        const response = await fetch('/getMakeDay', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        const dayPlayerList = await response.json().dayPlayerList;
+    <script>
+        // GET 요청으로 선수 명단 가져오기
+        async function loadPlayers() {
+            try {
+                const response = await fetch('/getMakeDay', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-        if (Array.isArray(dayPlayerList)) {
-          populatePlayers('winning-team', dayPlayerList);
-          populatePlayers('losing-team', dayPlayerList);
+                if (response.ok) {
+                    const data = await response.json()
+                    const dayPlayerList = data.dayPlayerList;
+                    if (Array.isArray(dayPlayerList)) {
+                        // 이긴 팀: 기본 초록색 선택 스타일
+                        populatePlayers('winning-team', dayPlayerList);
+                        // 진 팀: 빨간색 선택 스타일
+                        populatePlayers('losing-team', dayPlayerList, true);
+                    } else {
+                        alert(`getDayPlayers failed: ${data.message}`);
+                    }
+                }
+            } catch (err) {
+                alert('An error occurred: ' + err.message);
+            }
         }
-      } catch (error) {
-        console.error('Error loading players:', error);
-      }
-    }
-    
 
-    // 선수 명단을 버튼으로 생성
-    function populatePlayers(containerId, players) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = ''; // 초기화
-      players.forEach(player => {
-        const button = document.createElement('button');
-        button.textContent = player;
-        button.classList.add('player-button');
-        button.onclick = () => button.classList.toggle('selected'); // 선택/해제
-        container.appendChild(button);
-      });
-    }
 
-    // 저장 버튼 클릭 이벤트
-    document.getElementById('save-button').addEventListener('click', async () => {
-      const winningPlayers = getSelectedPlayers('winning-team');
-      const losingPlayers = getSelectedPlayers('losing-team');
+        // 선수 명단을 버튼으로 생성
+        function populatePlayers(containerId, players, losingTeam = false) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; // 초기화
+            players.forEach(player => {
+                const button = document.createElement('button');
+                button.textContent = player;
+                button.classList.add('player-button');
 
-      try {
-        const response = await fetch('/makeMatches', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            winningPlayers,
-            losingPlayers,
-          }),
+                // 클릭 시 선택 상태 토글
+                button.onclick = () => {
+                    if (losingTeam) {
+                        // 진 팀일 경우 빨간색 스타일 적용
+                        button.classList.toggle('selected-losing');
+                    } else {
+                        // 이긴 팀일 경우 초록색 스타일 적용
+                        button.classList.toggle('selected');
+                    }
+                };
+                container.appendChild(button);
+            });
+        }
+
+        // 저장 버튼 클릭 이벤트
+        document.getElementById('save-button').addEventListener('click', async () => {
+            const winningPlayers = getSelectedPlayers('winning-team');
+            const losingPlayers = getSelectedPlayers('losing-team');
+
+            // 중복 확인 로직 추가
+            const duplicates = winningPlayers.filter(player => losingPlayers.includes(player));
+            if (duplicates.length > 0) {
+                alert(`중복된 선수: ${duplicates.join(', ')}. 한 팀에만 선택하세요.`);
+                return; // 저장 중단
+            }
+            try {
+                const response = await fetch('/makeMatches', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        winningPlayers,
+                        losingPlayers,
+                    }),
+                });
+
+                if (response.ok) {
+                    alert('저장되었습니다.');
+                    if (window.opener && typeof window.opener.loadMatches === 'function') {
+                        // 부모 창의 loadMatches 함수 호출
+                        window.opener.loadMatches();
+                    }
+                    // 팝업 창 닫기
+                    window.close();
+                } else {
+                    alert('저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error saving match results:', error);
+            }
         });
 
-        if (response.ok) {
-          alert('저장되었습니다.');
-          window.close();
-        } else {
-          alert('저장에 실패했습니다.');
+        // 취소 버튼 클릭 이벤트
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            window.close(); // 팝업창 닫기
+        });
+
+        // 선택된 선수 가져오기
+        function getSelectedPlayers(containerId) {
+            const container = document.getElementById(containerId);
+            let selectedButtons = container.querySelectorAll('.player-button.selected');
+            if (selectedButtons.length === 0)
+                selectedButtons = container.querySelectorAll('.player-button.selected-losing');
+            return Array.from(selectedButtons).map(button => button.textContent);
         }
-      } catch (error) {
-        console.error('Error saving match results:', error);
-      }
-    });
 
-    // 취소 버튼 클릭 이벤트
-    document.getElementById('cancel-button').addEventListener('click', () => {
-      window.close(); // 팝업창 닫기
-    });
-
-    // 선택된 선수 가져오기
-    function getSelectedPlayers(containerId) {
-      const container = document.getElementById(containerId);
-      const selectedButtons = container.querySelectorAll('.player-button.selected');
-      return Array.from(selectedButtons).map(button => button.textContent);
-    }
-
-    // 페이지 로드 시 선수 명단 로드
-    document.addEventListener('DOMContentLoaded', loadPlayers);
-  </script>
+        // 페이지 로드 시 선수 명단 로드
+        document.addEventListener('DOMContentLoaded', loadPlayers);
+    </script>
 </body>
+
 </html>

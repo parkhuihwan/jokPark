@@ -136,6 +136,7 @@
       const names = Array.from(nameList.children).map(block => block.textContent);
       if (names.length > 0) {
         alert(`Saved names: ${names.join(', ')}`);
+        savePlayers();
         history.back();
       } else {
         alert('No names to save.');
@@ -163,7 +164,7 @@
       return nameList;
     }
     async function savePlayers() { 
-      const names = Array.from(nameList).map(item => item.textContent);
+      const names = Array.from(nameList.children).map(block => block.textContent);
       
       try {
         const response = await fetch('/setPlayers', {
@@ -171,12 +172,12 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: {playerList: names}
+          body: JSON.stringify({playerList: names})
         });
 
         if (response.ok) {
           const data = await response.json()
-          alert(`Login successful: ${JSON.stringify(data.playerList)}`);
+          //alert(`Login successful: ${JSON.stringify(data.playerList)}`);
           for(let i = 0; i < data.playerList.length; i++) {
             addName(data.playerList[i]);
           }

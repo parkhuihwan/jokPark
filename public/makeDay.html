@@ -89,8 +89,7 @@
     };
     // 취소 버튼 기능
     document.getElementById("cancel-button").onclick = () => {
-      selectedContainer.innerHTML = ""; // 출전 인원 초기화
-      [...buttonContainer.children].forEach(button => (button.disabled = false)); // 전체 버튼 활성화
+      history.back();
     };
 
 
@@ -150,7 +149,6 @@
       const selectedContainer = document.getElementById("selected-container");
       const names = [...selectedContainer.children].map(child => child.textContent);;
 
-      alert(`names: ${JSON.stringify(names)}`);
       try {
         const response = await fetch('/setMakeDay', {
           method: 'POST',
@@ -162,7 +160,7 @@
 
         if (response.ok) {
           const data = await response.json()
-          alert(`makeDay successful!`);
+          alert(`makeDay successful! names: ${JSON.stringify(names)}`);
           window.location.href = data.redirect;
 
         } else {
@@ -174,68 +172,6 @@
       }
     }
   </script>
-</body>
-
-</html>
-
-<script>
-  const buttons = document.querySelectorAll('.button');
-  const dropZone = document.querySelector('.drop-zone');
-  const saveButton = document.querySelector('.save-button');
-  const cancelButton = document.querySelector('.cancel-button');
-
-  // Add drag event listeners to buttons
-  buttons.forEach(button => {
-    button.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', button.textContent);
-      setTimeout(() => button.style.display = 'none', 0);
-    });
-
-    button.addEventListener('dragend', () => {
-      button.style.display = 'inline-block';
-    });
-  });
-
-  // Add drag event listeners to drop zone
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('drag-over');
-  });
-
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
-  });
-
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-
-    const name = e.dataTransfer.getData('text/plain');
-    const droppedElement = document.createElement('div');
-    droppedElement.textContent = name;
-    droppedElement.style.margin = '10px';
-    droppedElement.style.fontSize = '18px';
-    dropZone.appendChild(droppedElement);
-  });
-
-  // Save button event
-  saveButton.addEventListener('click', () => {
-    const names = Array.from(dropZone.querySelectorAll('div')).map(el => el.textContent);
-    if (names.length > 0) {
-      alert(`Saved names: ${names.join(', ')}`);
-    } else {
-      alert('No names to save.');
-    }
-  });
-
-  // Cancel button event
-  cancelButton.addEventListener('click', () => {
-    history.back();
-  });
-
-
-
-</script>
 </body>
 
 </html>

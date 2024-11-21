@@ -115,6 +115,10 @@ app.post('/makeMatches', (req, res) => {
 app.get('/getMatches', (req, res) => {
   res.json({todayMatches: JOK.getMatches()});
 });
+app.post('/saveMatches', (req, res) => {
+  JOK.saveMatches();
+  return res.json({ success: true, redirect: '/' });
+});
 
 
 
