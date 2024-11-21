@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMJok - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f5f5f5;
+    }
+
+    .header {
+      font-size: 28px;
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      text-align: center;
+    }
+
+    .form-container input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .form-container button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .login-button {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .login-button:hover {
+      background-color: #218838;
+    }
+
+    .inquiry-button {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .inquiry-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">BMJok</div>
+
+  <!-- Form Container -->
+  <div class="form-container">
+    <form id="loginForm">
+      <input type="text" id="userId" placeholder="Enter your ID" required>
+      <input type="password" id="password" placeholder="Enter your Password" required>
+      <button type="submit" class="login-button">Login</button>
+    </form>
+    <button class="inquiry-button" id="inquiryButton">Inquiry</button>
+  </div>
+
+  <script>
+    // Handle login form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); // Prevent default form submission
+      
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!userId || !password) {
+        alert('Please fill in both fields.');
+        return;
+      }
+
+      // Send POST request to /login
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId, password })
+        });
+
+        if (response.ok) {
+          const data = await response.json()
+          alert(`Login successful: ${data.success}`);
+          window.location.href = data.redirect;
+        } else {
+          const error = await response.json();
+          alert(`Login failed: ${error.message}`);
+        }
+      } catch (err) {
+        alert('An error occurred: ' + err.message);
+      }
+    });
+
+    // Handle inquiry button click
+    document.getElementById('inquiryButton').addEventListener('click', () => {
+      alert('For inquiries, please contact support@bmjok.com');
+    });
+  </script>
+</body>
+</html>

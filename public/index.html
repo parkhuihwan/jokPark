@@ -1,13 +1,200 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Express App</title>
+  <title>BMJok</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      background-color: #007bff;
+      color: white;
+      padding: 20px;
+      font-size: 24px;
+    }
+
+    .button-group {
+      margin: 20px 0;
+    }
+
+    .button-group button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .make-button {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .make-button:hover {
+      background-color: #5a6268;
+    }
+
+    .matches-list {
+      margin: 20px auto;
+      width: 80%;
+      height: 200px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      overflow-y: scroll;
+      background-color: #f9f9f9;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .matches-list p {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+
+    .action-buttons {
+      margin: 20px 0;
+    }
+
+    .action-buttons button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .rollback-button {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .rollback-button:hover {
+      background-color: #c82333;
+    }
+
+    .save-button {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .save-button:hover {
+      background-color: #218838;
+    }
+    
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Express App!</h1>
-  <p>This is a simple web page served by Express.</p>
+  <!-- Header -->
+  <div class="header">
+    BMJok
+  </div>
+
+  <!-- Buttons for Actions -->
+  <div class="button-group">
+    <button class="make-button" id="makePlayersButton">Make Players</button>
+    <button class="make-button" id="makeDayButton">Make a Day</button>
+    <button class="make-button" id="makeMatchesButton">Make Matches</button>
+  </div>
+
+  <!-- Matches List -->
+  <div class="matches-list" id="matchesList">
+    <p>No matches available. Create some matches!</p>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button class="rollback-button" id="rollbackButton">Rollback</button>
+    <button class="save-button" id="saveButton">Save</button>
+  </div>
+
+  <script>
+    const matchesList = document.getElementById('matchesList');
+    const makePlayersButton = document.getElementById('makePlayersButton');
+    const makeDayButton = document.getElementById('makeDayButton');
+    const makeMatchesButton = document.getElementById('makeMatchesButton');
+    const rollbackButton = document.getElementById('rollbackButton');
+    const saveButton = document.getElementById('saveButton');
+
+    // Navigation for Make Players
+    makePlayersButton.addEventListener('click', () => {
+      window.location.href = 'makePlayers';
+    });
+
+    // Navigation for Make a Day
+    makeDayButton.addEventListener('click', () => {
+      window.location.href = 'makeDay';
+    });
+
+    // Open Popup for Make Matches
+    makeMatchesButton.addEventListener('click', () => {
+      const popupWidth = 400;
+      const popupHeight = 300;
+      const popupX = window.screen.width / 2 - popupWidth / 2;
+      const popupY = window.screen.height / 2 - popupHeight / 2;
+      window.open(
+        'makeMatches', // 페이지 이름
+        'Make Matches', // 팝업창 이름
+        `width=${popupWidth},height=${popupHeight},left=${popupX},top=${popupY}`
+      );
+    });
+
+    // Sample data for matches
+    let matches = [];
+    let backupMatches = [];
+
+    // Add match function
+    function addMatch(match) {
+      matches.push(match);
+      updateMatchesList();
+    }
+
+    // Update Matches List Display
+    function updateMatchesList() {
+      matchesList.innerHTML = matches.length
+        ? matches.map((match, index) => `<p>Match ${index + 1}: ${match}</p>`).join('')
+        : '<p>No matches available. Create some matches!</p>';
+    }
+
+    // Rollback to previous state
+    rollbackButton.addEventListener('click', () => {
+      matches = [...backupMatches];
+      updateMatchesList();
+    });
+
+    // Save matches
+    saveButton.addEventListener('click', async (e) => {
+      e.preventDefault(); 
+
+      // Send POST request to /login
+      try {
+        const response = await fetch('/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          //body: JSON.stringify({ })
+        });
+
+        if (response.ok) {
+        const data = await response.json()
+          alert(`Logout successful: ${data.success}`);
+          window.location.href = data.redirect;
+        } else {
+          const error = await response.json();
+          alert(`Logout failed: ${error.success}`);
+        }
+      } catch (err) {
+        alert('An error occurred: ' + err.message);
+      }
+    });
+  </script>
 </body>
 </html>

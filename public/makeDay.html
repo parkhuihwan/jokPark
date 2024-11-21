@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>인원 관리</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .container {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .container h2 {
+      margin-top: 0;
+    }
+
+    #button-container,
+    #selected-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .action-buttons {
+      text-align: center;
+    }
+
+    .action-buttons button {
+      margin: 0 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+
+    .action-buttons button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>전체 인원</h2>
+    <div id="button-container"></div>
+  </div>
+
+  <div class="container">
+    <h2>출전 인원</h2>
+    <div id="selected-container"></div>
+  </div>
+
+  <div class="action-buttons">
+    <button id="save-button">저장</button>
+    <button id="cancel-button">취소</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const buttonContainer = document.getElementById("button-container");
+      const selectedContainer = document.getElementById("selected-container");
+    // 저장 버튼 기능
+    document.getElementById("save-button").onclick = () => {
+      const selectedNames = [...selectedContainer.children].map(btn => btn.textContent);
+      makeDay(selectedNames);
+
+    };
+    // 취소 버튼 기능
+    document.getElementById("cancel-button").onclick = () => {
+      selectedContainer.innerHTML = ""; // 출전 인원 초기화
+      [...buttonContainer.children].forEach(button => (button.disabled = false)); // 전체 버튼 활성화
+    };
+
+
+      try {
+        const response = await fetch('/getPlayers', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json()
+          //alert(`Login successful: ${JSON.stringify(data.playerList)}`);
+          const allNames = data.playerList;
+          // 전체 인원 버튼 생성
+          allNames.forEach(name => {
+            const button = document.createElement("button");
+            button.textContent = name;
+            button.onclick = () => addToSelected(name, button);
+            buttonContainer.appendChild(button);
+          });
+
+          // 출전 인원 추가
+          function addToSelected(name, button) {
+            // 중복 방지
+            if ([...selectedContainer.children].some(child => child.textContent === name)) {
+              alert(`${name} 이미 추가되었습니다!`);
+              return;
+            }
+
+            const selectedButton = document.createElement("button");
+            selectedButton.textContent = name;
+
+            // 출전 인원에서 제거 기능
+            selectedButton.onclick = () => {
+              selectedContainer.removeChild(selectedButton);
+              button.disabled = false; // 전체 인원 버튼 다시 활성화
+            };
+
+            selectedContainer.appendChild(selectedButton);
+            button.disabled = true; // 전체 인원 버튼 비활성화
+          }
+          
+
+        } else {
+          const error = await response.json();
+          alert(`getPlayers failed: ${error.message}`);
+        }
+      } catch (err) {
+        alert('An error occurred: ' + err.message);
+      }
+    });
+
+
+    async function makeDay() {
+      const selectedContainer = document.getElementById("selected-container");
+      const names = [...selectedContainer.children].map(child => child.textContent);;
+
+      alert(`names: ${JSON.stringify(names)}`);
+      try {
+        const response = await fetch('/setMakeDay', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ dayPlayerList: names })
+        });
+
+        if (response.ok) {
+          const data = await response.json()
+          alert(`makeDay successful!`);
+          window.location.href = data.redirect;
+
+        } else {
+          const error = await response.json();
+          alert(`makeDay failed: ${error.message}`);
+        }
+      } catch (err) {
+        alert('An error occurred: ' + err.message);
+      }
+    }
+  </script>
+</body>
+
+</html>
+
+<script>
+  const buttons = document.querySelectorAll('.button');
+  const dropZone = document.querySelector('.drop-zone');
+  const saveButton = document.querySelector('.save-button');
+  const cancelButton = document.querySelector('.cancel-button');
+
+  // Add drag event listeners to buttons
+  buttons.forEach(button => {
+    button.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', button.textContent);
+      setTimeout(() => button.style.display = 'none', 0);
+    });
+
+    button.addEventListener('dragend', () => {
+      button.style.display = 'inline-block';
+    });
+  });
+
+  // Add drag event listeners to drop zone
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+
+    const name = e.dataTransfer.getData('text/plain');
+    const droppedElement = document.createElement('div');
+    droppedElement.textContent = name;
+    droppedElement.style.margin = '10px';
+    droppedElement.style.fontSize = '18px';
+    dropZone.appendChild(droppedElement);
+  });
+
+  // Save button event
+  saveButton.addEventListener('click', () => {
+    const names = Array.from(dropZone.querySelectorAll('div')).map(el => el.textContent);
+    if (names.length > 0) {
+      alert(`Saved names: ${names.join(', ')}`);
+    } else {
+      alert('No names to save.');
+    }
+  });
+
+  // Cancel button event
+  cancelButton.addEventListener('click', () => {
+    history.back();
+  });
+
+
+
+</script>
+</body>
+
+</html>
