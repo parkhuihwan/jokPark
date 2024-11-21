@@ -127,19 +127,21 @@ app.post('/saveMatches', (req, res) => {
 
 
 // 인증서 파일 로드
-/*
+
 const options = {
   ca: fs.readFileSync(path.join(__dirname, 'cert', 'rootCA.pem')), // Root CA 인증서
   cert: fs.readFileSync(path.join(__dirname, 'cert', 'server.crt')), // 서버 인증서
   key: fs.readFileSync(path.join(__dirname, 'cert', 'server.key')), // 서버 개인 키
 };
-*/
+
 // 인증서 파일 로드
+/*
 const options = {
   ca: fs.readFileSync(path.join(__dirname, 'gCert', 'ca-bundle.crt')), // Root CA 인증서
   cert: fs.readFileSync(path.join(__dirname, 'gCert', 'star_gigagenie_ai_cert.pem')), // 서버 인증서
   key: fs.readFileSync(path.join(__dirname, 'gCert', 'star_gigagenie_ai_key.pem')), // 서버 개인 키
 };
+*/
 // 정적 파일 제공
 //app.use(express.static(path.join(__dirname, 'public')));
 // 모든 요청을 index.html로 리다이렉트
