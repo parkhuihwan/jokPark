@@ -99,10 +99,14 @@ app.post('/setMakeDay', (req, res) => {
   return res.json({ success: true, redirect: '/' });
 });
 
-//makeMatches 페이지
-app.get('/makeMatches', (req, res) => {
+
+
+
+
+//makeCustomMatches 페이지
+app.get('/makeCustomMatches', (req, res) => {
   if (req.session.isLoggedIn) {
-    return res.sendFile(__dirname + '/public/makeMatches.html');
+    return res.sendFile(__dirname + '/public/makeCustomMatches.html');
   } else {
     return res.redirect('/login');
   }
@@ -119,7 +123,22 @@ app.post('/saveMatches', (req, res) => {
   JOK.saveMatches();
   return res.json({ success: true, redirect: '/' });
 });
+app.delete('/rollback', (req, res) => {
+  JOK.delLastMatch();
+  res.status(200).json({ message: `last match was deleted successfully` });
+});
 
+
+
+
+//makeMatches 페이지
+app.get('/makeRandomMatches', (req, res) => {
+  if (req.session.isLoggedIn) {
+    return res.sendFile(__dirname + '/public/makeRandomMatches.html');
+  } else {
+    return res.redirect('/login');
+  }
+});
 
 
 

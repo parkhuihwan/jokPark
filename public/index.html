@@ -62,11 +62,8 @@
       padding: 0;
       margin: 0;
       display: flex;
-      /* 가로 정렬 */
       flex-wrap: wrap;
-      /* 요소가 넘칠 경우 줄바꿈 */
       gap: 10px;
-      /* 요소 간 간격 */
     }
 
     .player-list li {
@@ -137,7 +134,8 @@
   <div class="button-group">
     <button class="make-button" id="makePlayersButton">Make Players</button>
     <button class="make-button" id="makeDayButton">Today's Players</button>
-    <button class="make-button" id="makeMatchesButton">Make Matches</button>
+    <button class="make-button" id="makeRandomMatchesButton">Random Matches</button>
+    <button class="make-button" id="makeCustomMatchesButton">Custom Matches</button> <!-- 새 버튼 -->
   </div>
 
   <!-- Today Players -->
@@ -161,7 +159,8 @@
     const todayPlayersList = document.getElementById('todayPlayersList');
     const makePlayersButton = document.getElementById('makePlayersButton');
     const makeDayButton = document.getElementById('makeDayButton');
-    const makeMatchesButton = document.getElementById('makeMatchesButton');
+    const makeRandomMatchesButton = document.getElementById('makeRandomMatchesButton');
+    const makeCustomMatchesButton = document.getElementById('makeCustomMatchesButton'); // 새 버튼
     const rollbackButton = document.getElementById('rollbackButton');
     const saveButton = document.getElementById('saveButton');
 
@@ -175,37 +174,46 @@
       window.location.href = 'makeDay';
     });
 
-    // Open Popup for Make Matches
-    makeMatchesButton.addEventListener('click', () => {
+    // Open Popup for Make Random Matches
+    makeRandomMatchesButton.addEventListener('click', () => {
+      openPopup('makeRandomMatches', 'Make Random Matches');
+    });
+
+    // Open Popup for Make Custom Matches
+    makeCustomMatchesButton.addEventListener('click', () => {
+      openPopup('makeCustomMatches', 'Make Custom Matches');
+    });
+
+    // Open Popup Function
+    function openPopup(page, title) {
       const popupWidth = 400;
       const popupHeight = 300;
       const popupX = window.screen.width / 2 - popupWidth / 2;
       const popupY = window.screen.height / 2 - popupHeight / 2;
       window.open(
-        'makeMatches', // 페이지 이름
-        'Make Matches', // 팝업창 이름
+        page, // 페이지 이름
+        title, // 팝업창 이름
         `width=${popupWidth},height=${popupHeight},left=${popupX},top=${popupY}`
       );
-    });
+    }
 
     // Load Today Players
     async function loadTodayPlayers() {
-
       try {
         const response = await fetch('/getMakeDay', {
           method: 'GET',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         });
 
         if (response.ok) {
           const data = await response.json();
           const dayPlayerList = data.dayPlayerList;
-          //alert(`isArray: ${Array.isArray(dayPlayerList)} / length: ${dayPlayerList.length}`)
-          todayPlayersList.innerHTML = ''; // 초기화
+
+          todayPlayersList.innerHTML = '';
           if (Array.isArray(dayPlayerList) && dayPlayerList.length > 0) {
-            dayPlayerList.forEach(player => {
+            dayPlayerList.forEach((player) => {
               const li = document.createElement('li');
               li.textContent = player;
               todayPlayersList.appendChild(li);
@@ -217,8 +225,9 @@
       } catch (err) {
         alert('An error occurred: ' + err.message);
       }
-
     }
+
+    // Load Matches
     async function loadMatches() {
       try {
         const response = await fetch('/getMatches', {
@@ -234,10 +243,10 @@
         const matches = Array.isArray(todayMatches)
           ? todayMatches
           : Array.isArray(todayMatches.matches)
-            ? todayMatches.matches
-            : [];
+          ? todayMatches.matches
+          : [];
 
-        matchesList.innerHTML = ''; // 초기화
+        matchesList.innerHTML = '';
 
         if (matches.length > 0) {
           matches.forEach((match, index) => {
@@ -261,11 +270,9 @@
       loadMatches();
     });
 
-
     // Save Matches Event
     saveButton.addEventListener('click', async () => {
       try {
-        // POST 요청
         const response = await fetch('/saveMatches', {
           method: 'POST',
           headers: {
@@ -285,14 +292,33 @@
       }
     });
 
-  // Rollback 버튼 클릭 이벤트
-  rollbackButton.addEventListener('click', () => {
-    const matches = matchesList.querySelectorAll('div'); // 매치 목록
-    if (matches.length > 0) {
-      const confirmDelete = confirm("마지막 경기를 삭제하시겠습니까?");
+    // Rollback Event
+    rollbackButton.addEventListener('click', async () => {
+      const matches = matchesList.querySelectorAll('div');
+      if (matches.length > 0) {
+        const confirmDelete = confirm('마지막 경기를 삭제하시겠습니까?');
       if (confirmDelete) {
         const lastMatch = matches[matches.length - 1]; // 가장 마지막 매치
         matchesList.removeChild(lastMatch); // 마지막 매치 제거
+        
+      try {
+        const response = await fetch('/rollback', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          alert('Rollback successfully!');
+        } else {
+          const errorMessage = await response.text();
+          alert('Error rollback: ' + errorMessage);
+        }
+      } catch (error) {
+        console.error('Error during rollback:', error);
+        alert('An error occurred while rollback.');
+      }
       }
     } else {
       alert('No matches to rollback.');

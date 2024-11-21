@@ -43,7 +43,7 @@ class jok {
     }
     getMatches() {
         if (!this.dayMatches[this.getTodayYYMMDD()])
-            return "[]";
+            return [];
         else
             return this.dayMatches[this.getTodayYYMMDD()];
     }
@@ -51,6 +51,9 @@ class jok {
         this.writeFile('PlayerList.txt', JSON.stringify(this.playerList));
         this.writeFile('DayPlayerList.txt', JSON.stringify(this.dayPlayerList));
         this.writeFile(this.getTodayYYMMDD()+'_Matches.txt', JSON.stringify(this.getMatches()));
+    }
+    delLastMatch() {
+        this.getMatches().pop();
     }
     writeFile(fileName, content){
         fs.writeFile("./data/"+fileName, content, 'utf8', (err) => {
