@@ -136,8 +136,8 @@ const options = {
 */
 // 인증서 파일 로드
 const options = {
-  ca: fs.readFileSync(path.join(__dirname, 'gCert', 'star_gigagenie_ai_cert.pem')), // Root CA 인증서
-  cert: fs.readFileSync(path.join(__dirname, 'gCert', 'ca-bundle.crt')), // 서버 인증서
+  ca: fs.readFileSync(path.join(__dirname, 'gCert', 'ca-bundle.crt')), // Root CA 인증서
+  cert: fs.readFileSync(path.join(__dirname, 'gCert', 'star_gigagenie_ai_cert.pem')), // 서버 인증서
   key: fs.readFileSync(path.join(__dirname, 'gCert', 'star_gigagenie_ai_key.pem')), // 서버 개인 키
 };
 // 정적 파일 제공
