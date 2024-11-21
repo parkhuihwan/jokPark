@@ -5,10 +5,10 @@ default_md = sha256
 distinguished_name = dn
 
 [dn]
-C=US
+C=KR
 ST=RandomState
 L=RandomCity
 O=RandomOrganization
 OU=RandomOrganizationUnit
 emailAddress=hello@example.com
-CN = localhost
+CN = jokpark.ai
