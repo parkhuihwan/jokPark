@@ -27,6 +27,9 @@ app.use(
   })
 );
 
+// 정적 파일 제공
+app.use(express.static(path.join(__dirname, 'public')));
+
 // 로그인 체크 미들웨어
 function isLoggedIn(req, res, next) {
   if (req.session.isLoggedIn) {
@@ -160,8 +163,6 @@ const options = {
   key: fs.readFileSync(path.join(__dirname, 'gCert', 'star_gigagenie_ai_key.pem')), // 서버 개인 키
 };
 */
-// 정적 파일 제공
-app.use(express.static(path.join(__dirname, 'public')));
 // 모든 요청을 index.html로 리다이렉트
 app.get(['/*', ''], (req, res) => {
   if (req.session.isLoggedIn) {
