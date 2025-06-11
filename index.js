@@ -161,7 +161,7 @@ const options = {
 };
 */
 // 정적 파일 제공
-//app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 // 모든 요청을 index.html로 리다이렉트
 app.get(['/*', ''], (req, res) => {
   if (req.session.isLoggedIn) {
