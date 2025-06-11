@@ -15,7 +15,7 @@ const JOK = new jok();
 app.use(express.json()); // JSON 요청 본문 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 요청 본문 파싱
 
-
+const __dirname = "https://jok-park.vercel.app/";
 
 
 // 세션 설정
